@@ -1,45 +1,44 @@
-from email.base64mime import header_length
-import socket
-import sys
+import socket as s
+import threading as t
 
-HEADER_LENGTH = 10
+sock = s.socket(s.AF_INET, s.SOCK_STREAM)
+host_port = ("143.47.184.219", 5378)
+sock.connect(host_port)
 
-IP = "143.47.184.219"
-PORT = 5378
+## send data to the other application
+buffer = "Sockets are great!".encode("utf-8")
+num_bytes_sent = sock.send(buffer)
+sock.sendall(buffer)
 
-my_username = input("Username: ")
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((IP, PORT))
-s.setblocking(False)
 
-username = my_username.encode("utf-8")
-username_header = f"{len(username):<{HEADER_LENGTH}}".encode("utf-8")
-s.sendall(username_header + username)
+# sendall calls send repeatedly until all bytes are sent.
+#string_bytes = "Sockets are great!".encode("utf-8")
+#sock.sendall(string_bytes)
 
-while True:
-    message = input(f"{my_username} > ")
+## receive data from the other application
+# Waiting until data comes in; receive at most 4096 bytes.
+data = sock.recv(4096)
 
-    if message:
-        message = message.encode("utf-8")
-        message_header = f"{len(message):<{HEADER_LENGTH}}".encode("utf-8")
-        s.sendall(message_header + message)
+if not data:
+    print("Socket is closed.")
+else:
+    print("Socket has data.")
 
-    try:
-        while True:
-            # Receive things
-            res_username_header = s.recv(HEADER_LENGTH)
-            if not len(res_username_header):
-                print("connection closed by the server")
-                sys.exit()
+# exceptions
+try:
+    sock.send("how to handle errors?".encode("utf-8"))
+    answer = sock.recv(4096)
+except OSError as msg:
+    print(msg)
 
-            username_length = int(res_username_header.decode("utf-8").strip())
-            username = s.recv(username_length).decode("utf-8")
+## closing the connection
+sock.close()
 
-            message_header = s.recv(HEADER_LENGTH)
-            message_length = int(message_header.decode("utf-8").strip())
-            message = s.recv(message_length).decode("utf-8")
+# threading: the args par must be a tuple!
+thread = t.Thread(target=print, args=("hello", "world"))
 
-            print(f"{username} > {message}")
-    except Exception as e:
-        print("General error", str(e))
-        sys.exit()
+# running the function specified in a new thread
+thread.start()
+
+# waiting for the thread to finish (100 ms in this case)
+thread.join(0.1)

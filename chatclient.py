@@ -36,7 +36,7 @@ def listen_to_server():
                 # username = ""
                 # username = input("Username: ")
                 # first_handshake = f"HELLO-FROM {username}\n".encode("utf-8")
-                s.sendall(first_handshake)
+                # s.sendall(first_handshake)
             elif re.match(r"HELLO", server_message):
                 userTaken = False
                 print(f"Login Successful!\n")

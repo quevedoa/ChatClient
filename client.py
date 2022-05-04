@@ -7,8 +7,11 @@ import sys
 userTaken = True
 stop_thread = False
 
-IP = "143.47.184.219"
-PORT = 5378
+# IP = "143.47.184.219"
+# PORT = 5378
+
+IP = "192.168.16.44"
+PORT = 1234
 
 
 def deleteLastLine():
@@ -52,9 +55,11 @@ while userTaken:
 def listen():
     while True:
         try:
-            server_message = s.recv(1024).decode("utf-8")[:-1]
+            server_message = s.recv(2).decode("utf-8")
+            while not server_message.endswith("\n"):
+                server_message += s.recv(2).decode("utf-8")
             if re.match(r"WHO-OK", server_message):
-                list_users = server_message.split(" ")[1:]
+                list_users = server_message[:-1].split(" ")[1:]
                 print(f"Online Users: {list_users}")
             elif re.match(r"SEND-OK", server_message):
                 pass
@@ -81,6 +86,7 @@ def write():
         command = input(f"{username} > ")
 
         if command == "!quit":
+            s.sendall("!quit\n".encode("utf-8"))
             print("Goodbye.")
             s.close()
             sys.exit()
